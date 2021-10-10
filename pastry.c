@@ -5,13 +5,14 @@
 
 #include "pastry.h"
 
+// A static array of char to store the tastes
 char tastes_values[7][50] = { "Chocolate", "Vanilla", "Strawberry", "Orange", "Apple", "Banana", "Fudge" };
 
 Element_str* initialize_tastes(){
-    // A static array of char to store the tastes
-    //char tastes_values[7][50] = { "Chocolate", "Vanilla", "Strawberry", "Orange", "Apple", "Banana", "Fudge" };
 
     Element_str* l_tastes = malloc(sizeof(*l_tastes));
+
+    // We use the static array to create the Linked List that contains the tastes
 
     for (int i = 0; i < 7; ++i) {
         Element_str* new = malloc(sizeof(*new));
@@ -26,6 +27,7 @@ Element_str* initialize_tastes(){
 }
 
 Order_Queue* create_order_queue(){
+    // We create and allocate the memory the order queue
     Order_Queue* q_orders = malloc(sizeof (*q_orders));
     q_orders->data = NULL;
     return q_orders;
@@ -38,6 +40,7 @@ int order_queue_is_full(Order_Queue* q_orders){
         return 0;
     }
 
+    // We count the number of orders using while
     Element_str* temp = q_orders->data;
     int order_count = 1;
     while (temp->next != NULL){
@@ -45,7 +48,7 @@ int order_queue_is_full(Order_Queue* q_orders){
         temp = temp->next;
     }
 
-    // Return 1 if the total number of orders is superior to 10, else 0
+    // Return 1 if the total number of orders is superior or equal to 10, else 0
     return order_count >= 10;
 
 }
@@ -80,22 +83,18 @@ void pass_order(char order[50], Order_Queue* f_orders ){
 
 Element_str* process_order(Order_Queue* q_orders ){
     // Check if the order queue is empty
-    if(q_orders == NULL){
-        //TODO: order queue empty
+    if(q_orders->data == NULL){
+        // If order queue is empty, we return NULL
+        printf("There is currently no order in the queue !\n");
         return NULL;
     }
 
     else {
-        Element_str* current_order = malloc(sizeof(*current_order));
-        // Copy the content of the first next order of the queue
-        memcpy(current_order, q_orders->data, sizeof(*current_order));
         // Save current address
-        Element_str* old = q_orders->data;
+        Element_str* current_order = q_orders->data;
         // Remove the order from the queue
         q_orders->data = q_orders->data->next;
-        // Free the order in memory
-        free(old);
-
+        // Return current address
         return current_order;
     }
 
@@ -115,17 +114,18 @@ void build_Cake(Cake* cake, Element_str* l_tastes){
     int i = 0;
     // For every character, which correspond to a taste, we find the corresponding full word
     while (cake->order->text[i] != '\0'){
-        //printf("%c\n", cake->order->text[i]);
+
         // We save the first taste address
         Element_str* first_taste = l_tastes;
+        // We find the corresponding taste
         while (l_tastes->text[0] != cake->order->text[i]){
             l_tastes = l_tastes->next;
         }
-        printf("%c correspond to word %s\n", cake->order->text[i], l_tastes->text);
+        printf("Adding %c correspond to taste %s\n", cake->order->text[i], l_tastes->text);
         Element_str* current_taste = malloc(sizeof (*current_taste));
         // After finding the corresponding taste of the letter, we copy it into the Taste Element
         strcpy(current_taste->text, l_tastes->text);
-        //Taste_Stack* old =  cake->s_tastes->data;
+
         current_taste->next = cake->s_tastes->data;
         cake->s_tastes->data = current_taste;
 
@@ -136,6 +136,7 @@ void build_Cake(Cake* cake, Element_str* l_tastes){
 }
 
 Tasting_Queue* create_tasting_queue(){
+    // Simply alloc for the queue
     Tasting_Queue* q_tasting = malloc(sizeof (*q_tasting));
     q_tasting->data = NULL;
     return q_tasting;
@@ -144,7 +145,7 @@ Tasting_Queue* create_tasting_queue(){
 void deliver(Cake* cake, Tasting_Queue* q_tasting){
 
     // Putting the cake in a Cake element
-    // TODO: Think about what happens to the order for this cake!
+    // Think about what happens to the order for this cake : order is destroyed in tasting function
     Element_cake* ready_cake = malloc(sizeof (*ready_cake));
     ready_cake->next = NULL;
     ready_cake->cake = cake;
@@ -197,6 +198,10 @@ void tasting(Tasting_Queue* q_tasting, int nb_parts){
                 printf("Cake %s has been entirely ate, removing it\n", current_cake->cake->order->text);
                 Element_cake* old = q_tasting->data;
                 q_tasting->data = q_tasting->data->next;
+                // Free the different allocations
+                free(old->cake->s_tastes);
+                free(old->cake->order);
+                free(old->cake);
                 free(old);
             }
 
